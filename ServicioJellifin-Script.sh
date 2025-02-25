@@ -7,7 +7,6 @@ echo "1 - Instalar"
 echo "2 - Actualizar"
 echo "3 - Verificar Versión"
 
-# Leer la opción del usuario
 read -p "Selecciona una opción (1-3): " opcion
 
 case $opcion in
