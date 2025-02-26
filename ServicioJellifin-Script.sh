@@ -7,7 +7,7 @@ echo "1 - Instalar"
 echo "2 - Actualizar"
 echo "3 - Verificar Versión"
 echo "4 - Desplegar servicio con dockers"
-read -p "Selecciona una opción (1-3): " opcion
+read -p "Selecciona una opción (1-4): " opcion
 
 case $opcion in
     1)
@@ -68,9 +68,33 @@ case $opcion in
         ;;
 
     4)
-    echo "Despegando servicio con dockers..."
+echo "Verificando instalacion de docker"
+output=$(docker --version )
+
+if [[ "$output" == *"Docker version"* ]]; then
+    echo "Instalacion de docker verificada"
+    echo "Despegando servicio con jellyfin..."
+    docker run jellyfin/jellyfin
+    echo "Servicio desplegado correctamente, Accede a Jellyfin en: http://localhost:8096"
+else
+    echo "Docker no está instalado."
+    read -p "¿Deseas instalar Docker? (S/n): " respuesta
+    if [[ -z "$respuesta" || "$respuesta" =~ ^[Ss]$ ]]; then
+        echo "Instalando Docker..."
+        sudo apt update
+        sudo apt install apt-transport-https ca-certificates curl software-properties-common
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
+        apt-cache policy docker-ce
+        sudo apt install docker-ce
+        echo "Docker instalado correctamente."
+        docker --version
+        fi
+        fi
       ;;  
+
+      
     *)
-        echo "Opción no válida. Por favor, elige entre 1 y 3."
+        echo "Opción no válida. Por favor, elige entre 1 y 4."
         ;;
 esac
