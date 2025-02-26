@@ -1,0 +1,43 @@
+
+- name: Instalar Jellyfin en Ubuntu
+  hosts: localhost
+  become: yes
+  tasks:
+    - name: Actualizar lista de paquetes
+      apt:
+update_cache: yes
+    - name: Instalar dependencias necesarias
+      apt:
+        name:
+          - apt-transport-https
+          - software-properties-common
+          - gnupg
+        state: present
+    - name: Agregar clave GPG de Jellyfin
+      apt_key:
+        url: https://repo.jellyfin.org/jellyfin_team.gpg.key
+        state: present
+    - name: Agregar repositorio de Jellyfin
+      apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/jellyfin_team.gpg] https://repo.jellyfin.org/ubuntu $>
+        state: present
+        filename: jellyfin
+    - name: Actualizar lista de paquetes después de agregar el repositorio
+      apt:
+        update_cache: yes
+    - name: Instalar Jellyfin
+      apt:
+        name: jellyfin
+        state: present
+    - name: Habilitar y arrancar el servicio Jellyfin
+      systemd:
+        name: jellyfin
+        enabled: yes
+        state: started
+    - name: Mostrar estado del servicio Jellyfin
+      command: systemctl status jellyfin
+      register: jellyfin_status
+      changed_when: false
+    - debug:
+        msg: "{{ jellyfin_status.stdout_lines }}"
+
