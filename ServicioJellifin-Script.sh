@@ -74,7 +74,7 @@ output=$(docker --version )
 if [[ "$output" == *"Docker version"* ]]; then
     echo "Instalacion de docker verificada"
     echo "Despegando servicio con jellyfin..."
-    docker run jellyfin/jellyfin
+    sudo docker run jellyfin/jellyfin
     echo "Servicio desplegado correctamente, Accede a Jellyfin en: http://localhost:8096"
 else
     echo "Docker no está instalado."
