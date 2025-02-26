@@ -6,7 +6,7 @@ echo "--------------------"
 echo "1 - Instalar"
 echo "2 - Actualizar"
 echo "3 - Verificar Versión"
-
+echo "4 - Desplegar servicio con dockers"
 read -p "Selecciona una opción (1-3): " opcion
 
 case $opcion in
@@ -66,6 +66,10 @@ case $opcion in
         echo "Verificando versión..."
         
         ;;
+
+    4)
+    echo "Despegando servicio con dockers..."
+      ;;  
     *)
         echo "Opción no válida. Por favor, elige entre 1 y 3."
         ;;
