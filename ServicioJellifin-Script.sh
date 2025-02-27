@@ -1,9 +1,59 @@
 #!/bin/bash
 
+install_jellyfin() {
+    echo "Instalando Jellyfin..."
+    sudo apt update
+    sudo apt install -y wget apt-transport-https curl gnupg
+    
+    # Eliminar claves antiguas si existen
+    sudo rm -f /usr/share/keyrings/jellyfin_team-archive-keyring.gpg
+    
+    # Descargar y agregar la clave GPG correctamente
+    curl -fsSL https://repo.jellyfin.org/jellyfin_team.gpg.key | sudo gpg --dearmor -o /usr/share/keyrings/jellyfin_team-archive-keyring.gpg
+    
+    # Agregar el repositorio de Jellyfin
+    echo "deb [signed-by=/usr/share/keyrings/jellyfin_team-archive-keyring.gpg] https://repo.jellyfin.org/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/jellyfin.list > /dev/null
+    
+    sudo apt update
+    sudo apt install -y jellyfin
+    echo "Jellyfin instalado correctamente."
+}
+
+# Función para desinstalar Jellyfin
+uninstall_jellyfin() {
+    echo "Desinstalando Jellyfin..."
+    sudo systemctl stop jellyfin
+    sudo apt remove --purge -y jellyfin
+    sudo rm -rf /var/lib/jellyfin /etc/jellyfin /var/log/jellyfin
+    echo "Jellyfin ha sido desinstalado."
+}
+
+# Función para iniciar Jellyfin
+start_jellyfin() {
+    echo "Iniciando Jellyfin..."
+    sudo systemctl start jellyfin
+    echo "Jellyfin iniciado."
+}
+
+# Función para detener Jellyfin
+stop_jellyfin() {
+    echo "Deteniendo Jellyfin..."
+    sudo systemctl stop jellyfin
+    echo "Jellyfin detenido."
+}
+
+# Función para ver logs de Jellyfin
+logs_jellyfin() {
+    echo "Mostrando logs de Jellyfin..."
+    sudo journalctl -u jellyfin -n 50 --no-pager
+}
+
+
+clear
 echo "--------------------"
 echo "Indica una opción:"
 echo "--------------------"
-echo "1 - Instalar"
+echo "1 - Instalar mediate comandos"
 echo "2 - Actualizar"
 echo "3 - Verificar versión"
 echo "4 - Desplegar servicio con dockers"
@@ -11,28 +61,42 @@ read -p "Selecciona una opción (1-4): " opcion
 
 case $opcion in
     1)
-        echo "Ejecutando instalación..."
+    clear
+        while true; do
+    echo "1) Instalar Jellyfin"
+    echo "2) Desinstalar Jellyfin"
+    echo "3) Iniciar Jellyfin"
+    echo "4) Detener Jellyfin"
+    echo "5) Ver logs de Jellyfin"
+    echo "6) Salir"
+    read -p "Seleccione una opción: " option
 
-        echo "Actualizando el sistema..."
-        sudo apt update && sudo apt upgrade -y
+    case "$option" in
+        1)
+            install_jellyfin
+            ;;
+        2)
+            uninstall_jellyfin
+            ;;
+        3)
+            start_jellyfin
+            ;;
+        4)
+            stop_jellyfin
+            ;;
+        5)
+            logs_jellyfin
+            ;;
+        6)
+            echo "Saliendo..."
+            exit 0
+            ;;
+        *)
+            echo "Opción no válida, intente de nuevo."
+            ;;
+    esac
 
-        echo "Agregando el repositorio de Jellyfin..."
-        sudo apt install -y software-properties-common apt-transport-https
-        wget -O - https://repo.jellyfin.org/debian/jellyfin_team.gpg.key | sudo tee /usr/share/keyrings/jellyfin.asc
-
-        echo "deb [signed-by=/usr/share/keyrings/jellyfin.asc] https://repo.jellyfin.org/debian $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/jellyfin.list
-
-        echo "Instalando Jellyfin..."
-        sudo apt update && sudo apt install -y jellyfin
-
-        echo "Habilitando y arrancando el servicio Jellyfin..."
-        sudo systemctl enable jellyfin
-        sudo systemctl start jellyfin
-
-        echo "Estado del servicio Jellyfin:"
-        sudo systemctl status jellyfin --no-pager
-
-        echo "Instalación completada. Accede a Jellyfin en: http://localhost:8096"
+done
         ;;
     2)
         if apt list --upgradable 2>/dev/null | grep -q "jellyfin"; then
@@ -61,7 +125,7 @@ case $opcion in
 echo "Verificando instalacion de docker"
 output=$(docker --version )
 
-if [[ "$output" == *"Docker version"* ]]; then
+if [[ "$output" == "Docker version" ]]; then
     echo "Instalacion de docker verificada"
     echo "Despegando servicio con jellyfin..."
     sudo docker run jellyfin/jellyfin
