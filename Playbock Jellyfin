@@ -1,0 +1,73 @@
+---
+- name: Instalar y configurar Jellyfin en Ubuntu
+  hosts: ubuntu
+  become: true
+  tasks:
+    - name: Actualizar la lista de paquetes
+      apt:
+        update_cache: yes
+
+    - name: Instalar dependencias necesarias
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+        state: present
+
+    - name: Añadir la clave GPG de Jellyfin
+      apt_key:
+        url: https://repo.jellyfin.org/ubuntu/jellyfin.asc
+        state: present
+
+    - name: Añadir el repositorio de Jellyfin
+      apt_repository:
+        repo: 'deb https://repo.jellyfin.org/ubuntu stable main'
+        state: present
+
+    - name: Actualizar lista de paquetes después de añadir el repositorio
+      apt:
+        update_cache: yes
+
+    - name: Instalar Jellyfin
+      apt:
+        name: jellyfin
+        state: present
+
+    - name: Habilitar y arrancar el servicio de Jellyfin
+      systemd:
+        name: jellyfin
+        enabled: yes
+        state: started
+
+    - name: Asegurarse de que el puerto 8096 está abierto en el firewall
+      ufw:
+        rule: allow
+        name: 'Jellyfin'
+        port: '8096'
+        proto: tcp
+        state: enabled
+
+    - name: Verificar el estado del servicio Jellyfin
+      systemd:
+        name: jellyfin
+        state: started
+        enabled: yes
+
+    - name: Crear un directorio para los medios (opcional)
+      file:
+        path: "/var/lib/jellyfin/media"
+        state: directory
+        mode: '0755'
+
+    - name: Establecer permisos adecuados para los medios (opcional)
+      file:
+        path: "/var/lib/jellyfin/media"
+        owner: jellyfin
+        group: jellyfin
+        mode: '0755'
+
+    - name: Mensaje de confirmación
+      debug:
+        msg: "Jellyfin se ha instalado y está corriendo en el puerto 8096. Accede a http://<IP_del_servidor>:8096 para configurarlo."
